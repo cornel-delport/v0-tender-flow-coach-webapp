@@ -232,6 +232,65 @@ export const mockEvidence: EvidenceItem[] = [
   }
 ]
 
+export const mockEvidenceItems = [
+  { id: 'e1', title: 'Referentie Gemeente Amsterdam', category: 'referentie', description: 'Cloud-migratie voor 5000+ gebruikers met 99.9% uptime', year: '2023' },
+  { id: 'e2', title: 'Referentie Provincie Utrecht', category: 'referentie', description: 'Implementatie hybride werkplek oplossing', year: '2022' },
+  { id: 'e3', title: 'Referentie Waterschap Hollandse Delta', category: 'referentie', description: 'Netwerkmodernisatie en security upgrade', year: '2023' },
+  { id: 'e4', title: 'ISO 27001:2022 Certificaat', category: 'certificaat', description: 'Informatiebeveiliging managementsysteem', year: '2024' },
+  { id: 'e5', title: 'ISO 9001:2015 Certificaat', category: 'certificaat', description: 'Kwaliteitsmanagementsysteem', year: '2023' },
+  { id: 'e6', title: 'NEN 7510 Certificaat', category: 'certificaat', description: 'Informatiebeveiliging in de zorg', year: '2023' },
+  { id: 'e7', title: 'CV: Jan Pietersen - Lead Architect', category: 'cv', description: '15 jaar ervaring in enterprise architectuur, Azure certified', year: null },
+  { id: 'e8', title: 'CV: Maria van Dijk - Project Manager', category: 'cv', description: 'Prince2, PMP gecertificeerd, 50+ overheidsprojecten', year: null },
+  { id: 'e9', title: 'CV: Thomas Bakker - Security Specialist', category: 'cv', description: 'CISSP, CEH, 12 jaar ervaring in cybersecurity', year: null },
+  { id: 'e10', title: 'Architectuurschema Hybride Cloud', category: 'document', description: 'Technisch diagram van de voorgestelde oplossing', year: '2024' },
+  { id: 'e11', title: 'SLA Template', category: 'document', description: 'Standaard Service Level Agreement met KPIs', year: '2024' },
+  { id: 'e12', title: 'Transitieplan Template', category: 'document', description: 'Gefaseerd implementatieplan met mijlpalen', year: '2024' },
+]
+
+export const mockProjects: TenderProject[] = [
+  mockProject,
+  {
+    id: 'proj-002',
+    projectName: 'Rijkswaterstaat - Monitoring Systeem',
+    clientName: 'InfraTech Solutions',
+    tenderTitle: 'Real-time Monitoring Watermanagement',
+    referenceNumber: 'RWS-2024-MON-002',
+    deadline: new Date('2024-04-01'),
+    sector: 'Overheid',
+    region: 'Landelijk',
+    contractValue: '€ 1.000.000 - € 2.500.000',
+    tenderType: 'Europese aanbesteding',
+    teamMembers: mockTeamMembers,
+    contactPerson: 'Anna de Vries',
+    internalOwner: 'Sophie van den Berg',
+    status: 'draft',
+    progress: 15,
+    readinessScore: 22,
+    createdAt: new Date('2024-01-20'),
+    updatedAt: new Date('2024-01-25')
+  },
+  {
+    id: 'proj-003',
+    projectName: 'GGD Regio - Digitale Zorgplatform',
+    clientName: 'HealthIT B.V.',
+    tenderTitle: 'Patiëntportaal en Afsprakensysteem',
+    referenceNumber: 'GGD-2024-DIG-003',
+    deadline: new Date('2024-02-28'),
+    sector: 'Zorg',
+    region: 'Noord-Holland',
+    contractValue: '€ 500.000 - € 1.000.000',
+    tenderType: 'Meervoudig onderhands',
+    teamMembers: [mockTeamMembers[0], mockTeamMembers[2]],
+    contactPerson: 'Mark Jansen',
+    internalOwner: 'Anna de Vries',
+    status: 'review',
+    progress: 85,
+    readinessScore: 78,
+    createdAt: new Date('2023-12-01'),
+    updatedAt: new Date('2024-02-05')
+  }
+]
+
 export const writingTips: WritingTip[] = [
   {
     id: 'tip1',
