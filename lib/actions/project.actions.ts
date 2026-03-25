@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+
+export type ProjectActionResult = { error?: string; redirect?: string }
 import { logActivity } from './activity.actions'
 
 /** Default criteria added to every new project */
@@ -34,7 +36,7 @@ const DEFAULT_QUESTIONS: Record<string, string[]> = {
   ],
 }
 
-export async function createProject(formData: FormData) {
+export async function createProject(formData: FormData): Promise<ProjectActionResult> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Niet ingelogd' }
@@ -132,7 +134,7 @@ export async function createProject(formData: FormData) {
   }
 
   revalidatePath('/projecten')
-  redirect(`/projecten/${project.id}`)
+  return { redirect: `/projecten/${project.id}` }
 }
 
 export async function updateProjectStatus(

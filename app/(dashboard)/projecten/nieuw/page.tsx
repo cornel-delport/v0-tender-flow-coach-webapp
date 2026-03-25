@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { AppHeader } from '@/components/app-header'
 import { Button } from '@/components/ui/button'
@@ -40,6 +41,7 @@ const regions = [
 ]
 
 export default function NieuwProjectPage() {
+  const router = useRouter()
   const [step, setStep] = useState(1)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -61,7 +63,11 @@ export default function NieuwProjectPage() {
     setError(null)
     startTransition(async () => {
       const result = await createProject(formData)
-      if (result?.error) setError(result.error)
+      if (result?.error) {
+        setError(result.error)
+      } else if (result?.redirect) {
+        router.push(result.redirect)
+      }
     })
   }
 
@@ -118,11 +124,11 @@ export default function NieuwProjectPage() {
             </span>
           </div>
 
-          {/* Single form wrapping all steps — hidden fields persist across steps */}
+          {/* Single form wrapping all steps — all steps stay in DOM so FormData captures all inputs */}
           <form ref={formRef}>
             {/* Step 1: Project Details */}
-            {step === 1 && (
-              <Card className="border-border">
+            <div className={step !== 1 ? 'hidden' : ''}>
+            <Card className="border-border">
                 <CardHeader>
                   <CardTitle>Projectgegevens</CardTitle>
                   <CardDescription>Vul de basisgegevens van uw tenderproject in</CardDescription>
@@ -251,11 +257,11 @@ export default function NieuwProjectPage() {
                   </div>
                 </CardContent>
               </Card>
-            )}
+            </div>
 
             {/* Step 2: Overview */}
-            {step === 2 && (
-              <Card className="border-border">
+            <div className={step !== 2 ? 'hidden' : ''}>
+            <Card className="border-border">
                 <CardHeader>
                   <CardTitle>Projectoverzicht</CardTitle>
                   <CardDescription>
@@ -325,11 +331,11 @@ export default function NieuwProjectPage() {
                   </div>
                 </CardContent>
               </Card>
-            )}
+            </div>
 
             {/* Step 3: Confirm & Submit */}
-            {step === 3 && (
-              <Card className="border-border">
+            <div className={step !== 3 ? 'hidden' : ''}>
+            <Card className="border-border">
                 <CardHeader>
                   <CardTitle>Project Aanmaken</CardTitle>
                   <CardDescription>Klik op de knop om het project definitief aan te maken</CardDescription>
@@ -360,7 +366,7 @@ export default function NieuwProjectPage() {
                   </div>
                 </CardContent>
               </Card>
-            )}
+            </div>
           </form>
         </div>
       </div>
