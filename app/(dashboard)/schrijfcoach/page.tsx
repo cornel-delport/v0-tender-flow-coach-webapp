@@ -24,7 +24,6 @@ import {
   MessageSquare,
   TrendingUp
 } from 'lucide-react'
-import { writingTips } from '@/lib/mock-data'
 
 const categories = [
   { id: 'all', label: 'Alles', icon: BookOpen },

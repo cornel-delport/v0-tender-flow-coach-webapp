@@ -1,4 +1,4 @@
-export type ProjectStatus = 'concept' | 'in_progress' | 'review' | 'completed' | 'submitted'
+export type ProjectStatus = 'concept' | 'in_progress' | 'review' | 'completed' | 'submitted' | 'won' | 'lost'
 
 export type QualityLevel = 'zwak' | 'redelijk' | 'sterk'
 
@@ -66,7 +66,7 @@ export interface QualityScores {
   customerFocus: QualityLevel
   readability: QualityLevel
   distinctiveness: QualityLevel
-  smartLevel: 'laag' | 'gemiddeld' | 'hoog'
+  smartLevel: QualityLevel
 }
 
 export interface Comment {

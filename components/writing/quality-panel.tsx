@@ -35,13 +35,6 @@ function getScoreProgress(level: 'zwak' | 'redelijk' | 'sterk'): number {
   }
 }
 
-function getSmartProgress(level: 'laag' | 'gemiddeld' | 'hoog'): number {
-  switch (level) {
-    case 'hoog': return 100
-    case 'gemiddeld': return 60
-    case 'laag': return 25
-  }
-}
 
 export function QualityPanel({ scores }: QualityPanelProps) {
   const qualityMetrics = [
@@ -115,18 +108,15 @@ export function QualityPanel({ scores }: QualityPanelProps) {
           <div className="pt-2 border-t border-border">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-foreground font-medium">SMART-niveau</span>
-              <Badge 
-                variant="outline" 
-                className={`text-xs capitalize ${
-                  scores.smartLevel === 'hoog' ? 'text-success' : 
-                  scores.smartLevel === 'gemiddeld' ? 'text-warning' : 'text-destructive'
-                }`}
+              <Badge
+                variant="outline"
+                className={`text-xs capitalize ${getScoreColor(scores.smartLevel)}`}
               >
                 {scores.smartLevel}
               </Badge>
             </div>
-            <Progress 
-              value={getSmartProgress(scores.smartLevel)} 
+            <Progress
+              value={getScoreProgress(scores.smartLevel)}
               className="h-1.5"
             />
           </div>
@@ -181,7 +171,7 @@ function getSuggestions(scores: QualityScores): string[] {
   if (scores.distinctiveness === 'zwak') {
     suggestions.push('Laat zien waarom u de beste keuze bent')
   }
-  if (scores.smartLevel === 'laag') {
+  if (scores.smartLevel === 'zwak') {
     suggestions.push('Maak uitspraken meetbaar en tijdgebonden')
   }
 

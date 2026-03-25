@@ -97,22 +97,16 @@ export function CoachingTips({ criterion }: CoachingTipsProps) {
               <CardContent className="pt-0 space-y-3">
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-1">Criterium</p>
-                  <p className="text-sm">{criterion.name}</p>
+                  <p className="text-sm">{criterion.title}</p>
                 </div>
-                {criterion.description && (
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Beschrijving</p>
-                    <p className="text-sm text-muted-foreground">{criterion.description}</p>
-                  </div>
-                )}
                 <div className="flex items-center gap-4 pt-2">
                   <div>
                     <p className="text-xs text-muted-foreground">Weging</p>
-                    <p className="font-semibold">{criterion.weight}%</p>
+                    <p className="font-semibold">{criterion.weight ?? 0}%</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Max woorden</p>
-                    <p className="font-semibold">{criterion.maxWords}</p>
+                    <p className="text-xs text-muted-foreground">Status</p>
+                    <p className="font-semibold capitalize">{criterion.status}</p>
                   </div>
                 </div>
               </CardContent>

@@ -51,7 +51,7 @@ export const defaultQualityScores: QualityScores = {
   customerFocus: 'zwak',
   readability: 'redelijk',
   distinctiveness: 'zwak',
-  smartLevel: 'laag'
+  smartLevel: 'zwak'
 }
 
 export const mockCriteria: Criterion[] = [
@@ -84,7 +84,7 @@ export const mockCriteria: Criterion[] = [
           customerFocus: 'redelijk',
           readability: 'sterk',
           distinctiveness: 'redelijk',
-          smartLevel: 'gemiddeld'
+          smartLevel: 'redelijk'
         },
         comments: [
           {
@@ -116,7 +116,7 @@ export const mockCriteria: Criterion[] = [
           customerFocus: 'redelijk',
           readability: 'redelijk',
           distinctiveness: 'zwak',
-          smartLevel: 'laag'
+          smartLevel: 'zwak'
         },
         comments: [],
         isRequired: true,
@@ -263,7 +263,7 @@ export const mockProjects: TenderProject[] = [
     teamMembers: mockTeamMembers,
     contactPerson: 'Anna de Vries',
     internalOwner: 'Sophie van den Berg',
-    status: 'draft',
+    status: 'concept',
     progress: 15,
     readinessScore: 22,
     createdAt: new Date('2024-01-20'),

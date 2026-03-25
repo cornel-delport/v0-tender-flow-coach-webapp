@@ -1,84 +1,74 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useTransition } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { AppHeader } from '@/components/app-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { 
+import {
   ChevronRight,
   ArrowRight,
   ArrowLeft,
-  Upload,
   FileText,
-  X,
-  CheckCircle2
+  CheckCircle2,
+  Loader2,
 } from 'lucide-react'
+import { createProject } from '@/lib/actions/project.actions'
 
-const sectors = [
-  'Overheid',
-  'Utilities',
-  'Transport',
-  'Zorg',
-  'Onderwijs',
-  'Bouw',
-  'ICT',
-  'Anders'
-]
-
+const sectors = ['Overheid', 'Utilities', 'Transport', 'Zorg', 'Onderwijs', 'Bouw', 'ICT', 'Anders']
 const tenderTypes = [
   'Openbare aanbesteding',
   'Niet-openbare aanbesteding',
   'Onderhandse gunning',
   'Dynamisch aankoopsysteem',
   'Raamovereenkomst',
-  'Anders'
+  'Anders',
 ]
-
 const regions = [
-  'Noord-Holland',
-  'Zuid-Holland',
-  'Utrecht',
-  'Noord-Brabant',
-  'Gelderland',
-  'Overijssel',
-  'Limburg',
-  'Friesland',
-  'Groningen',
-  'Drenthe',
-  'Zeeland',
-  'Flevoland',
-  'Landelijk'
+  'Noord-Holland', 'Zuid-Holland', 'Utrecht', 'Noord-Brabant', 'Gelderland',
+  'Overijssel', 'Limburg', 'Friesland', 'Groningen', 'Drenthe',
+  'Zeeland', 'Flevoland', 'Landelijk',
 ]
 
 export default function NieuwProjectPage() {
-  const router = useRouter()
   const [step, setStep] = useState(1)
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const formRef = useRef<HTMLFormElement>(null)
 
-  const handleFileUpload = () => {
-    // Simulated file upload
-    setUploadedFiles([...uploadedFiles, `Document_${uploadedFiles.length + 1}.pdf`])
+  // Controlled values for Select components (not captured by FormData by default)
+  const [sector, setSector] = useState('')
+  const [region, setRegion] = useState('')
+  const [tenderType, setTenderType] = useState('')
+
+  function handleSubmit() {
+    if (!formRef.current) return
+    const formData = new FormData(formRef.current)
+    // Inject Select values manually
+    formData.set('sector', sector)
+    formData.set('region', region)
+    formData.set('tenderType', tenderType)
+
+    setError(null)
+    startTransition(async () => {
+      const result = await createProject(formData)
+      if (result?.error) setError(result.error)
+    })
   }
 
-  const removeFile = (index: number) => {
-    setUploadedFiles(uploadedFiles.filter((_, i) => i !== index))
-  }
-
-  const handleSubmit = () => {
-    // Navigate to the new project
-    router.push('/projecten/proj-001')
+  // Read current form values for the summary display on step 3
+  const getFieldValue = (name: string) => {
+    if (!formRef.current) return ''
+    return (formRef.current.elements.namedItem(name) as HTMLInputElement)?.value ?? ''
   }
 
   return (
@@ -99,20 +89,18 @@ export default function NieuwProjectPage() {
           <div className="flex items-center justify-center mb-8">
             {[1, 2, 3].map((s) => (
               <div key={s} className="flex items-center">
-                <div 
+                <div
                   className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors ${
-                    s < step 
-                      ? 'bg-accent text-accent-foreground' 
-                      : s === step 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted text-muted-foreground'
+                    s < step
+                      ? 'bg-accent text-accent-foreground'
+                      : s === step
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground'
                   }`}
                 >
                   {s < step ? <CheckCircle2 className="h-4 w-4" /> : s}
                 </div>
-                {s < 3 && (
-                  <div className={`w-24 h-0.5 mx-2 ${s < step ? 'bg-accent' : 'bg-muted'}`} />
-                )}
+                {s < 3 && <div className={`w-24 h-0.5 mx-2 ${s < step ? 'bg-accent' : 'bg-muted'}`} />}
               </div>
             ))}
           </div>
@@ -123,307 +111,257 @@ export default function NieuwProjectPage() {
               Projectgegevens
             </span>
             <span className={`text-sm ${step >= 2 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-              Documenten
+              Overzicht
             </span>
             <span className={`text-sm ${step >= 3 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
               Bevestigen
             </span>
           </div>
 
-          {/* Step 1: Project Details */}
-          {step === 1 && (
-            <Card className="border-border">
-              <CardHeader>
-                <CardTitle>Projectgegevens</CardTitle>
-                <CardDescription>
-                  Vul de basisgegevens van uw tenderproject in
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="projectName">Projectnaam *</Label>
-                    <Input 
-                      id="projectName" 
-                      placeholder="bijv. Gemeente Rotterdam - ICT Dienstverlening"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="clientName">Klantnaam *</Label>
-                    <Input 
-                      id="clientName" 
-                      placeholder="bijv. TechSolutions B.V."
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="tenderTitle">Aanbestedingstitel *</Label>
-                  <Input 
-                    id="tenderTitle" 
-                    placeholder="Volledige titel van de aanbesteding"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="referenceNumber">Referentienummer</Label>
-                    <Input 
-                      id="referenceNumber" 
-                      placeholder="bijv. ROT-2024-ICT-001"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="deadline">Indieningsdeadline *</Label>
-                    <Input 
-                      id="deadline" 
-                      type="date"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="sector">Sector</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecteer sector" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sectors.map((sector) => (
-                          <SelectItem key={sector} value={sector.toLowerCase()}>
-                            {sector}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="region">Regio</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecteer regio" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {regions.map((region) => (
-                          <SelectItem key={region} value={region.toLowerCase()}>
-                            {region}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="tenderType">Type aanbesteding</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecteer type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {tenderTypes.map((type) => (
-                          <SelectItem key={type} value={type.toLowerCase()}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="contractValue">Geschatte contractwaarde</Label>
-                  <Input 
-                    id="contractValue" 
-                    placeholder="bijv. € 500.000 - € 1.000.000"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="contactPerson">Contactpersoon</Label>
-                    <Input 
-                      id="contactPerson" 
-                      placeholder="Naam van de contactpersoon"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="internalOwner">Interne eigenaar</Label>
-                    <Input 
-                      id="internalOwner" 
-                      placeholder="Verantwoordelijke consultant"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end">
-                  <Button onClick={() => setStep(2)}>
-                    Volgende
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Step 2: Documents */}
-          {step === 2 && (
-            <Card className="border-border">
-              <CardHeader>
-                <CardTitle>Documenten Uploaden</CardTitle>
-                <CardDescription>
-                  Upload de relevante aanbestedingsdocumenten voor dit project
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Upload Area */}
-                <div 
-                  className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-accent/50 transition-colors cursor-pointer"
-                  onClick={handleFileUpload}
-                >
-                  <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-sm font-medium text-foreground mb-1">
-                    Klik om bestanden te uploaden
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    of sleep bestanden hierheen
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    PDF, Word, Excel tot 50MB
-                  </p>
-                </div>
-
-                {/* Document Categories */}
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { label: 'Aanbestedingsdocumenten', desc: 'Hoofddocument, bijlagen' },
-                    { label: 'Programma van Eisen', desc: 'Technische specificaties' },
-                    { label: 'Compliance documenten', desc: 'Verklaringen, certificaten' },
-                    { label: 'Eerdere voorstellen', desc: 'Referentiemateriaal' },
-                  ].map((category, index) => (
-                    <div 
-                      key={index}
-                      className="p-4 rounded-lg border border-border hover:border-accent/50 transition-colors cursor-pointer"
-                      onClick={handleFileUpload}
-                    >
-                      <FileText className="h-5 w-5 text-muted-foreground mb-2" />
-                      <p className="text-sm font-medium text-foreground">{category.label}</p>
-                      <p className="text-xs text-muted-foreground">{category.desc}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Uploaded Files */}
-                {uploadedFiles.length > 0 && (
-                  <div className="space-y-2">
-                    <Label>Geüploade bestanden</Label>
+          {/* Single form wrapping all steps — hidden fields persist across steps */}
+          <form ref={formRef}>
+            {/* Step 1: Project Details */}
+            {step === 1 && (
+              <Card className="border-border">
+                <CardHeader>
+                  <CardTitle>Projectgegevens</CardTitle>
+                  <CardDescription>Vul de basisgegevens van uw tenderproject in</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      {uploadedFiles.map((file, index) => (
-                        <div 
-                          key={index}
-                          className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50"
-                        >
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-foreground flex-1">{file}</span>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => removeFile(index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
+                      <Label htmlFor="projectName">Projectnaam *</Label>
+                      <Input
+                        id="projectName"
+                        name="projectName"
+                        placeholder="bijv. Gemeente Rotterdam - ICT Dienstverlening"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="clientName">Klantnaam *</Label>
+                      <Input
+                        id="clientName"
+                        name="clientName"
+                        placeholder="bijv. TechSolutions B.V."
+                        required
+                      />
                     </div>
                   </div>
-                )}
 
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={() => setStep(1)}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Vorige
-                  </Button>
-                  <Button onClick={() => setStep(3)}>
-                    Volgende
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                  <div className="space-y-2">
+                    <Label htmlFor="tenderTitle">Aanbestedingstitel</Label>
+                    <Input
+                      id="tenderTitle"
+                      name="tenderTitle"
+                      placeholder="Volledige titel van de aanbesteding"
+                    />
+                  </div>
 
-          {/* Step 3: Confirm */}
-          {step === 3 && (
-            <Card className="border-border">
-              <CardHeader>
-                <CardTitle>Project Aanmaken</CardTitle>
-                <CardDescription>
-                  Controleer de gegevens en maak het project aan
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Summary */}
-                <div className="space-y-4 p-4 rounded-lg bg-secondary/50">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Projectnaam</p>
-                      <p className="font-medium text-foreground">Gemeente Rotterdam - ICT Dienstverlening</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="referenceNumber">Referentienummer</Label>
+                      <Input
+                        id="referenceNumber"
+                        name="referenceNumber"
+                        placeholder="bijv. ROT-2024-ICT-001"
+                      />
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Klant</p>
-                      <p className="font-medium text-foreground">TechSolutions B.V.</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Deadline</p>
-                      <p className="font-medium text-foreground">15 maart 2024</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Sector</p>
-                      <p className="font-medium text-foreground">Overheid</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Geüploade documenten</p>
-                      <p className="font-medium text-foreground">{uploadedFiles.length} bestanden</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Type</p>
-                      <p className="font-medium text-foreground">Openbare aanbesteding</p>
+                    <div className="space-y-2">
+                      <Label htmlFor="deadline">Indieningsdeadline</Label>
+                      <Input id="deadline" name="deadline" type="date" />
                     </div>
                   </div>
-                </div>
 
-                {/* What happens next */}
-                <div className="p-4 rounded-lg border border-border">
-                  <h4 className="font-medium text-foreground mb-3">Wat gebeurt er na het aanmaken?</h4>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-accent mt-0.5 shrink-0" />
-                      <span>Het project wordt aangemaakt met standaard criteria</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-accent mt-0.5 shrink-0" />
-                      <span>U kunt direct beginnen met de intake en het schrijven</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-accent mt-0.5 shrink-0" />
-                      <span>Teamleden kunnen later worden uitgenodigd</span>
-                    </li>
-                  </ul>
-                </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Sector</Label>
+                      <Select value={sector} onValueChange={setSector}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecteer sector" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {sectors.map((s) => (
+                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Regio</Label>
+                      <Select value={region} onValueChange={setRegion}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecteer regio" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {regions.map((r) => (
+                            <SelectItem key={r} value={r}>{r}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Type aanbesteding</Label>
+                      <Select value={tenderType} onValueChange={setTenderType}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecteer type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {tenderTypes.map((t) => (
+                            <SelectItem key={t} value={t}>{t}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={() => setStep(2)}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Vorige
-                  </Button>
-                  <Button onClick={handleSubmit}>
-                    Project Aanmaken
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                  <div className="space-y-2">
+                    <Label htmlFor="contractValue">Geschatte contractwaarde</Label>
+                    <Input
+                      id="contractValue"
+                      name="contractValue"
+                      placeholder="bijv. € 500.000 - € 1.000.000"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="contactPerson">Contactpersoon</Label>
+                      <Input
+                        id="contactPerson"
+                        name="contactPerson"
+                        placeholder="Naam van de contactpersoon"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="internalOwner">Interne eigenaar</Label>
+                      <Input
+                        id="internalOwner"
+                        name="internalOwner"
+                        placeholder="Verantwoordelijke consultant"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button type="button" onClick={() => setStep(2)}>
+                      Volgende
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 2: Overview */}
+            {step === 2 && (
+              <Card className="border-border">
+                <CardHeader>
+                  <CardTitle>Projectoverzicht</CardTitle>
+                  <CardDescription>
+                    Controleer de ingevoerde gegevens voordat u het project aanmaakt
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4 p-4 rounded-lg bg-secondary/50">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Projectnaam</p>
+                        <p className="font-medium text-foreground">{getFieldValue('projectName') || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Klant</p>
+                        <p className="font-medium text-foreground">{getFieldValue('clientName') || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Deadline</p>
+                        <p className="font-medium text-foreground">{getFieldValue('deadline') || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Sector</p>
+                        <p className="font-medium text-foreground">{sector || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Regio</p>
+                        <p className="font-medium text-foreground">{region || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Type</p>
+                        <p className="font-medium text-foreground">{tenderType || '—'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-lg border border-border">
+                    <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Wat wordt aangemaakt
+                    </h4>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-accent mt-0.5 shrink-0" />
+                        <span>Project met 4 standaard criteria (aanpak, ervaring, team, prijs)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-accent mt-0.5 shrink-0" />
+                        <span>Schrijfwerkruimte per criterium met begeleide vragen</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-accent mt-0.5 shrink-0" />
+                        <span>U bent aangemeld als projectbeheerder</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <Button type="button" variant="outline" onClick={() => setStep(1)}>
+                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      Vorige
+                    </Button>
+                    <Button type="button" onClick={() => setStep(3)}>
+                      Volgende
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 3: Confirm & Submit */}
+            {step === 3 && (
+              <Card className="border-border">
+                <CardHeader>
+                  <CardTitle>Project Aanmaken</CardTitle>
+                  <CardDescription>Klik op de knop om het project definitief aan te maken</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="p-5 rounded-lg bg-accent/10 border border-accent/20 text-center">
+                    <CheckCircle2 className="h-10 w-10 text-accent mx-auto mb-3" />
+                    <p className="font-semibold text-foreground">{getFieldValue('projectName')}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{getFieldValue('clientName')}</p>
+                  </div>
+
+                  {error && (
+                    <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">
+                      {error}
+                    </p>
+                  )}
+
+                  <div className="flex justify-between">
+                    <Button type="button" variant="outline" onClick={() => setStep(2)}>
+                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      Vorige
+                    </Button>
+                    <Button type="button" onClick={handleSubmit} disabled={isPending}>
+                      {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Project Aanmaken
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </form>
         </div>
       </div>
     </div>

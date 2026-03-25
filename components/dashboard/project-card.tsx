@@ -36,11 +36,13 @@ function getDaysRemaining(deadline: Date): number {
 
 function getStatusBadge(status: TenderProject['status']) {
   const variants: Record<TenderProject['status'], { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
-    concept: { label: 'Concept', variant: 'secondary' },
+    concept:     { label: 'Concept',       variant: 'secondary' },
     in_progress: { label: 'In Uitvoering', variant: 'default' },
-    review: { label: 'Review', variant: 'outline' },
-    completed: { label: 'Voltooid', variant: 'secondary' },
-    submitted: { label: 'Ingediend', variant: 'secondary' }
+    review:      { label: 'Review',        variant: 'outline' },
+    completed:   { label: 'Voltooid',      variant: 'secondary' },
+    submitted:   { label: 'Ingediend',     variant: 'secondary' },
+    won:         { label: 'Gewonnen',      variant: 'default' },
+    lost:        { label: 'Verloren',      variant: 'secondary' },
   }
   const config = variants[status]
   return <Badge variant={config.variant}>{config.label}</Badge>

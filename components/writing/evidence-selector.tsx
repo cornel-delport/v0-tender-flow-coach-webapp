@@ -17,13 +17,20 @@ import {
   ExternalLink,
   GripVertical
 } from "lucide-react"
-import { mockEvidenceItems } from "@/lib/mock-data"
+export interface EvidenceItem {
+  id: string
+  title: string
+  category: string
+  description: string | null
+  year: number | null
+}
 
 interface EvidenceSelectorProps {
   projectId: string
+  items?: EvidenceItem[]
 }
 
-export function EvidenceSelector({ projectId }: EvidenceSelectorProps) {
+export function EvidenceSelector({ projectId, items = [] }: EvidenceSelectorProps) {
   const [search, setSearch] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
@@ -35,9 +42,9 @@ export function EvidenceSelector({ projectId }: EvidenceSelectorProps) {
     { id: "afbeelding", label: "Afbeeldingen", icon: Image, count: 6 },
   ]
 
-  const filteredEvidence = mockEvidenceItems.filter(item => {
+  const filteredEvidence = items.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
-                         item.description?.toLowerCase().includes(search.toLowerCase())
+                         (item.description?.toLowerCase().includes(search.toLowerCase()) ?? false)
     const matchesCategory = !selectedCategory || item.category === selectedCategory
     return matchesSearch && matchesCategory
   })
