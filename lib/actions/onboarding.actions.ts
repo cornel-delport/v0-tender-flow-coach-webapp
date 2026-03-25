@@ -43,15 +43,18 @@ export async function createOrganisation(
   const baseSlug = slugify(name) || 'org'
   const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`
 
+  // Pre-generate the org ID so we don't need .select('id') after INSERT.
+  // PostgREST filters RETURNING via the SELECT RLS policy; new users have no
+  // organisation_id yet, so user_organisation_id() returns NULL and the row
+  // would be invisible — causing a "no rows" error even on a successful INSERT.
+  const orgId = crypto.randomUUID()
+
   // Create the organisation row
-  const { data: org, error: orgError } = await supabase
+  const { error: orgError } = await supabase
     .from('organisations')
-    .insert({ name, slug })
-    .select('id')
-    .single()
+    .insert({ id: orgId, name, slug })
 
   if (orgError) {
-    // log as warn so the Next.js dev overlay doesn't show a red crash panel
     // PostgREST: table not found in schema cache
     if (orgError.code === 'PGRST205' || orgError.code === '42P01' || orgError.message?.includes('schema cache') || orgError.message?.includes('does not exist')) {
       return {
@@ -63,20 +66,16 @@ export async function createOrganisation(
     if (orgError.code === '42501' || orgError.message?.includes('policy') || orgError.message?.includes('permission denied')) {
       return {
         error:
-          '⚠️ Geen toegang (RLS). Voer ook supabase/migrations/002_fix_organisations_rls.sql uit in Supabase SQL Editor.',
+          '⚠️ Geen toegang (RLS). Voer supabase/migrations/001_rls_and_trigger_fixes.sql uit in Supabase SQL Editor.',
       }
     }
     return { error: `Fout bij aanmaken organisatie: ${orgError.message}` }
   }
 
-  if (!org?.id) {
-    return { error: 'Organisatie aangemaakt maar ID niet teruggekregen. Probeer opnieuw.' }
-  }
-
   // Link the user's profile to the new organisation and set role to beheerder
   const { error: profileError } = await supabase
     .from('profiles')
-    .update({ organisation_id: org.id, role: 'beheerder' })
+    .update({ organisation_id: orgId, role: 'beheerder' })
     .eq('id', user.id)
 
   if (profileError) {

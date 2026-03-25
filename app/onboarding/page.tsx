@@ -165,14 +165,23 @@ export default function OnboardingPage() {
   const [orgError, setOrgError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  function handleOrgSubmit(formData: FormData) {
+  function handleOrgSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
     setOrgError(null)
+    const formData = new FormData(e.currentTarget)
     startTransition(async () => {
-      const result = await createOrganisation(formData)
-      if (result?.error) {
-        setOrgError(result.error)
+      try {
+        const result = await createOrganisation(formData)
+        if (result?.error) {
+          setOrgError(result.error)
+        }
+        // On success the server action calls redirect('/dashboard') automatically
+      } catch (err: unknown) {
+        // redirect() throws internally in Next.js — rethrow so Next.js handles it
+        const msg = err instanceof Error ? err.message : String(err)
+        if (msg.includes('NEXT_REDIRECT')) throw err
+        setOrgError('Er is een onverwachte fout opgetreden. Probeer opnieuw.')
       }
-      // On success the server action calls redirect('/dashboard') automatically
     })
   }
 
@@ -193,7 +202,7 @@ export default function OnboardingPage() {
 
           <Card className="border-border">
             <CardContent className="p-6">
-              <form action={handleOrgSubmit} className="space-y-4">
+              <form onSubmit={handleOrgSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="orgName">Naam van uw organisatie</Label>
                   <Input
