@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,15 +14,20 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null)
   const [needsConfirmation, setNeedsConfirmation] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
-  function handleSubmit(formData: FormData) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
     setError(null)
+    const formData = new FormData(e.currentTarget)
     startTransition(async () => {
       const result = await signUp(formData)
       if (result?.error) {
         setError(result.error)
       } else if (result?.needsConfirmation) {
         setNeedsConfirmation(true)
+      } else if (result?.redirect) {
+        router.push(result.redirect)
       }
     })
   }
@@ -70,7 +76,7 @@ export default function RegisterPage() {
           <CardDescription>Vul uw gegevens in om te registreren</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="fullName">Volledige naam</Label>
               <Input

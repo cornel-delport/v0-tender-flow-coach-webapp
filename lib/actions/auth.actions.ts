@@ -24,7 +24,7 @@ export async function signIn(formData: FormData) {
     return { error: 'Onjuiste inloggegevens. Controleer uw e-mailadres en wachtwoord.' }
   }
 
-  redirect('/dashboard')
+  return { redirect: '/dashboard' }
 }
 
 export async function signUp(formData: FormData) {
@@ -62,7 +62,7 @@ export async function signUp(formData: FormData) {
     return { needsConfirmation: true }
   }
 
-  redirect('/onboarding')
+  return { redirect: '/onboarding' }
 }
 
 export async function signOut() {
