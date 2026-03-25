@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -164,23 +165,18 @@ export default function OnboardingPage() {
   const [step, setStep] = useState<number | null>(null)
   const [orgError, setOrgError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   function handleOrgSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setOrgError(null)
     const formData = new FormData(e.currentTarget)
     startTransition(async () => {
-      try {
-        const result = await createOrganisation(formData)
-        if (result?.error) {
-          setOrgError(result.error)
-        }
-        // On success the server action calls redirect('/dashboard') automatically
-      } catch (err: unknown) {
-        // redirect() throws internally in Next.js — rethrow so Next.js handles it
-        const msg = err instanceof Error ? err.message : String(err)
-        if (msg.includes('NEXT_REDIRECT')) throw err
-        setOrgError('Er is een onverwachte fout opgetreden. Probeer opnieuw.')
+      const result = await createOrganisation(formData)
+      if (result?.error) {
+        setOrgError(result.error)
+      } else if (result?.redirect) {
+        router.push(result.redirect)
       }
     })
   }

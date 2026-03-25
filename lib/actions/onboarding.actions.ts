@@ -1,7 +1,6 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 
 function slugify(text: string): string {
   return text
@@ -15,7 +14,7 @@ function slugify(text: string): string {
 
 export async function createOrganisation(
   formData: FormData
-): Promise<{ error?: string; success?: boolean }> {
+): Promise<{ error?: string; redirect?: string }> {
   const supabase = await createClient()
   const {
     data: { user },
@@ -36,7 +35,7 @@ export async function createOrganisation(
     .single()
 
   if (existingProfile?.organisation_id) {
-    redirect('/dashboard')
+    return { redirect: '/dashboard' }
   }
 
   // Generate a unique slug
@@ -89,5 +88,5 @@ export async function createOrganisation(
     return { error: `Profiel koppelen mislukt: ${profileError.message}` }
   }
 
-  redirect('/dashboard')
+  return { redirect: '/dashboard' }
 }
